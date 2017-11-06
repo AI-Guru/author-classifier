@@ -7,7 +7,7 @@ import string
 import numpy as np
 
 print("Loading spacy-model...")
-spacy_german = spacy.load('de')
+spacy_german = spacy.load("de")
 german_stopwords = stopwords.words("german")
 punctuations = string.punctuation
 
@@ -33,18 +33,15 @@ def run_network(model_path):
     model_type, class_names = model_metadata
     print("Model-metadata loaded.")
 
-    # TODO Predict...
-    sentence = "Gebraucht der Zeit sie eilt so schnell von hinnen!"
+    # Preprocess input for prediction.
+    sentence = "Gebraucht der Zeit, mein lieber Herr Faust! Der Teufel will nicht aus dem Haus! Der Pudel ist ein garstig Tier. Drum beenden wir das Treffen hier."
     sentence,_ = clean_up_text(sentence)
-    print(sentence)
     doc = spacy_german(sentence)
-    print(doc)
     vector = doc.vector
     vector = np.expand_dims(vector, axis=2)
     vector = np.expand_dims(vector, axis=0)
-    print(vector)
-    print(vector.shape)
 
+    # Do prediction.
     prediction = model.predict([vector])[0]
     print(prediction)
     print(prediction_to_string(prediction, class_names))

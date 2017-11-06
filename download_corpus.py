@@ -5,6 +5,7 @@ import jsonpath
 import os
 import shutil
 
+# TODO Download 
 #https://c-w.github.io/gutenberg-http/
 
 remove_corpus = True

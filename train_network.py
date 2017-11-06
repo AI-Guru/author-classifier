@@ -10,7 +10,7 @@ import shutil
 #model_type = "multi-layer-perceptron"
 model_type = "convolutional-neural-network"
 
-training_epochs = 10
+training_epochs = 500
 training_batch_size = 128
 
 remove_model = True
