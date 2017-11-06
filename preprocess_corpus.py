@@ -31,30 +31,34 @@ def preprocess_corpus(corpus_path="corpus", preprocessed_data_path="preprocessed
     if not os.path.exists(preprocessed_data_path):
         os.makedirs(preprocessed_data_path)
 
-    # Get all the authors from filesystem.
-    authors = [element for element in os.listdir(corpus_path) if not os.path.isfile(os.path.join(corpus_path, element))]
-    print(authors)
+    # Get all the classes from filesystem.
+    class_names = [element for element in os.listdir(corpus_path) if not os.path.isfile(os.path.join(corpus_path, element))]
+    print(class_names)
 
     # Compute one-hot-encodings.
-    one_hot_encodings = label_binarize(authors, classes=authors)
-    print(one_hot_encodings)
+    print("Computing one-hot-encodings for classes...")
+    one_hot_encodings = label_binarize(class_names, classes=class_names)
+    for index in range(len(class_names)):
+        class_name = class_names[index]
+        one_hot_encoding = one_hot_encodings[index]
+        print(class_name, "->", one_hot_encoding)
 
-    # Process authors.
+    # Process classes.
     data_in = []
     data_out = []
-    for index, author in enumerate(authors):
-        print("Processing", author)
+    for index, class_name in enumerate(class_names):
+        print("Processing", class_names)
         one_hot_encoding = one_hot_encodings[index]
 
         # Get all files.
-        glob_path = os.path.join(corpus_path, author, "*.body.txt")
+        glob_path = os.path.join(corpus_path, class_name, "*.body.txt")
         body_file_paths = glob.glob(glob_path)
         body_file_paths = body_file_paths[0:1]
 
         # For each file split data into paragraphs. Each paragraph is then turned into a document-vector.
         # After that we have all data as input-output.
         for body_file_path in body_file_paths:
-            print(body_file_path)
+            print("Processing file", body_file_path + "...")
             with open(body_file_path) as body_file:
                 body = body_file.read()
                 paragraphs = split_into_paragraphs(body)
@@ -62,7 +66,11 @@ def preprocess_corpus(corpus_path="corpus", preprocessed_data_path="preprocessed
                 vectors = np.array(vectors)
                 data_in.extend(vectors)
                 for _ in range(len(vectors)):
-                    data_out.extend(one_hot_encoding)
+                    data_out.append(one_hot_encoding)
+
+                # Double checking.
+                if len(data_in) != len(data_out):
+                    raise Exception("Inconsistency.", len(data_in), len(data_out))
 
     # Split into training and text.
     X_train, X_test, y_train, y_test = train_test_split(data_in, data_out, test_size=0.2, random_state=21)
@@ -75,7 +83,7 @@ def preprocess_corpus(corpus_path="corpus", preprocessed_data_path="preprocessed
     preprocessed_data_name = "preprocessed.pickle"
     preprocessed_data_path = os.path.join(preprocessed_data_path, preprocessed_data_name)
     print("Writing preprocessed data to", preprocessed_data_path)
-    preprocessed_data = X_train, X_test, y_train, y_test
+    preprocessed_data = X_train, X_test, y_train, y_test, class_names
     with open(preprocessed_data_path, "wb") as output_file:
         pickle.dump(preprocessed_data, output_file)
 
