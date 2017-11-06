@@ -16,7 +16,6 @@ training_batch_size = 128
 remove_model = True
 
 def main(args=None):
-
     preprocessed_data_path = "preprocessed"
     model_path = "model"
     train_network(preprocessed_data_path, model_path)
@@ -69,12 +68,23 @@ def train_network(preprocessed_data_path, model_path):
     print("Training accuracy: %.2f%% / Validation accuracy: %.2f%%" %
           (100*estimator.history['acc'][-1], 100*estimator.history['val_acc'][-1])) # TODO Rewrite
 
-    # TODO Save the model.
-    model_name = "{}-{}epochs.model".format(model_type, training_epochs)
-    model_path = os.path.join(model_path, model_name)
-    print("Writing model to", model_path + "...")
-    model.save(model_path)
+    #  Save the model.
+    model_name = "network.model"
+    model_file_path = os.path.join(model_path, model_name)
+    print("Writing model to", model_file_path + "...")
+    model.save(model_file_path)
     print("Model saved.")
+
+    # Create meta-data.
+    model_metadata = model_type, class_names
+
+    # Save model meta-data.
+    model_metadata_name = "network.meta"
+    model_metadata_file_path = os.path.join(model_path, model_metadata_name)
+    print("Writing model-metadata to", model_metadata_file_path + "...")
+    with open(model_metadata_file_path, "wb") as output_file:
+        pickle.dump(model_metadata, output_file)
+        print("Model-metadata saved.")
 
 
 def create_model(model_type, number_of_classes):

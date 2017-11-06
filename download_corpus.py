@@ -13,7 +13,8 @@ def main(args=None):
     authors = []
     authors.append("Goethe, Johann Wolfgang von")
     authors.append("Schiller, Friedrich")
-    authors.append("Rilke, Rainer Maria")
+    authors.append("Lessing, Gotthold Ephraim")
+    authors.append("Hesse, Hermann")
     corpus_path = "corpus"
     download_works_by_authors(authors, corpus_path)
 
