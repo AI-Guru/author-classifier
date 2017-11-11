@@ -90,9 +90,11 @@ def train_network(preprocessed_data_path, model_path):
 def create_model(model_type, number_of_classes):
     print("Creating model of type " + model_type)
 
+    input_size = 384
+
     if model_type == "multi-layer-perceptron":
         model = Sequential()
-        model.add(Dense(512, activation='relu', kernel_initializer='he_normal', input_dim=300))
+        model.add(Dense(512, activation='relu', kernel_initializer='he_normal', input_dim=input_size))
         model.add(Dropout(0.2))
         model.add(Dense(512, activation='relu', kernel_initializer='he_normal'))
         model.add(Dropout(0.2))
@@ -103,7 +105,7 @@ def create_model(model_type, number_of_classes):
         model.add(Dense(number_of_classes, activation='softmax'))
 
     elif model_type == "convolutional-neural-network":
-        inputs = Input(shape=(300,1))
+        inputs = Input(shape=(input_size,1))
         x = Conv1D(64, 3, strides=1, padding='same', activation='relu')(inputs)
         x = MaxPooling1D(pool_size=2)(x)
         x = Conv1D(128, 3, strides=1, padding='same', activation='relu')(x)
