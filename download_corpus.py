@@ -5,10 +5,11 @@ import jsonpath
 import os
 import shutil
 
-# TODO Download
-#https://c-w.github.io/gutenberg-http/
+# Downloads a couple of authors from Project Gutenberg.
 
+# If True, removes corpus before download if it exists.
 remove_corpus = True
+
 
 def main(args=None):
     authors = []
@@ -18,6 +19,7 @@ def main(args=None):
     authors.append("Hesse, Hermann")
     corpus_path = "corpus"
     download_works_by_authors(authors, corpus_path)
+
 
 def download_works_by_authors(authors, corpus_path="corpus"):
     # Make sure that there is a proper corpus-folder.
@@ -78,7 +80,6 @@ def download_text_with_id(text_id, text_collection_path):
 
 
 def clean_up_body(text_body):
-
     # Variant 1.
     start_string =  "START OF"
     start_string_index = text_body.find(start_string)
