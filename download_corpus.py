@@ -79,7 +79,7 @@ def download_text_with_id(text_id, text_collection_path):
 
 def clean_up_body(text_body):
 
-    # TODO Comment variant 1
+    # Variant 1.
     start_string =  "START OF"
     start_string_index = text_body.find(start_string)
     end_string = "END OF"
@@ -89,7 +89,7 @@ def clean_up_body(text_body):
         text_body = text_body[text_body.find("***") + 3:]
         return text_body
 
-    # TODO Comment variant 2
+    # Variant 2.
     small_print_end_string = "*END*"
     small_print_end_string_index = text_body.rfind(small_print_end_string)
     if small_print_end_string_index != -1:
