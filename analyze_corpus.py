@@ -44,24 +44,7 @@ def analyze_corpus(corpus_path="corpus", analysis_path="analysis"):
 
     counts = []
     for author in authors:
-
-        glob_path = os.path.join(corpus_path, author, "*.body.txt")
-        body_file_paths = glob.glob(glob_path)
-
-        # TODO remove this!
-        #body_file_paths = body_file_paths[0:1]
-
-        all_text = ""
-        all_tokens = []
-        all_count = 0
-        for body_file_path in body_file_paths:
-            print(body_file_path)
-            with open(body_file_path) as body_file:
-                body = body_file.read()
-                text, tokens = clean_up_text(body)
-                all_text += text
-                all_tokens.extend(tokens)
-                all_count += len(tokens)
+        all_text, all_tokens, all_count = process_author(corpus_path, author)
 
         # Render the word cloud.
         word_cloud_name = author + ".wordcloud.png"
@@ -71,7 +54,7 @@ def analyze_corpus(corpus_path="corpus", analysis_path="analysis"):
         # Render the word distribution.
         most_frequent_words_name = author + ".most_frequent_words.png"
         most_frequent_words_path = os.path.join(analysis_path, most_frequent_words_name)
-        render_most_frequent_words(author, tokens, most_frequent_words_path)
+        render_most_frequent_words(author, all_tokens, most_frequent_words_path)
 
         # TODO count words, files, or paragraphs
         counts.append(all_count)
@@ -83,6 +66,24 @@ def analyze_corpus(corpus_path="corpus", analysis_path="analysis"):
     sns_plot.get_figure().savefig(corpus_distribution_path)
     print("Written corpus-distribution to", corpus_distribution_path)
 
+
+def process_author(corpus_path, author):
+    all_text = ""
+    all_tokens = []
+    all_count = 0
+
+    glob_path = os.path.join(corpus_path, author, "*.body.txt")
+    body_file_paths = glob.glob(glob_path)
+    for body_file_path in body_file_paths:
+        print(body_file_path)
+        with open(body_file_path) as body_file:
+            body = body_file.read()
+            text, tokens = clean_up_text(body)
+            all_text += text
+            all_tokens.extend(tokens)
+            all_count += len(tokens)
+
+    return all_text, all_tokens, all_count
 
 def clean_up_text(text):
     doc = spacy_german(text)
