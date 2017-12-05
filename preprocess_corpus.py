@@ -31,48 +31,15 @@ def preprocess_corpus(corpus_path="corpus", preprocessed_data_path="preprocessed
     if not os.path.exists(preprocessed_data_path):
         os.makedirs(preprocessed_data_path)
 
-    # Get all the classes from filesystem.
-    class_names = [element for element in os.listdir(corpus_path) if not os.path.isfile(os.path.join(corpus_path, element))]
-    print(class_names)
-
-    # Compute one-hot-encodings.
-    print("Computing one-hot-encodings for classes...")
-    one_hot_encodings = label_binarize(class_names, classes=class_names)
-    for index in range(len(class_names)):
-        class_name = class_names[index]
-        one_hot_encoding = one_hot_encodings[index]
-        print(class_name, "->", one_hot_encoding)
-
-    # Process classes.
-    data_in = []
-    data_out = []
+    # Grab the class-names from the filesystem together with the encodings.
+    class_names, one_hot_encodings = get_classes_with_encodings(corpus_path)
     for index, class_name in enumerate(class_names):
-        print("Processing", class_names)
-        one_hot_encoding = one_hot_encodings[index]
+        print(class_name, "->", one_hot_encodings[index])
 
-        # Get all files.
-        glob_path = os.path.join(corpus_path, class_name, "*.body.txt")
-        body_file_paths = glob.glob(glob_path)
-        body_file_paths = body_file_paths[0:1]
+    # Derive the training data from the data-set.
+    data_in, data_out = get_training_data(class_names, one_hot_encodings, corpus_path)
 
-        # For each file split data into paragraphs. Each paragraph is then turned into a document-vector.
-        # After that we have all data as input-output.
-        for body_file_path in body_file_paths:
-            print("Processing file", body_file_path + "...")
-            with open(body_file_path) as body_file:
-                body = body_file.read()
-                paragraphs = split_into_paragraphs(body)
-                vectors = [doc.vector for doc in spacy_german.pipe(paragraphs, batch_size=500, n_threads=1)]
-                vectors = np.array(vectors)
-                data_in.extend(vectors)
-                for _ in range(len(vectors)):
-                    data_out.append(one_hot_encoding)
-
-                # Double checking.
-                if len(data_in) != len(data_out):
-                    raise Exception("Inconsistency.", len(data_in), len(data_out))
-
-    # Split into training and text.
+    # Split into training and text. Then print statistics.
     X_train, X_test, y_train, y_test = train_test_split(data_in, data_out, test_size=0.2, random_state=21)
     print('X_train size: {}'.format(len(X_train)))
     print('X_test size: {}'.format(len(X_test)))
@@ -88,6 +55,69 @@ def preprocess_corpus(corpus_path="corpus", preprocessed_data_path="preprocessed
         pickle.dump(preprocessed_data, output_file)
 
     print("Done.")
+
+
+def get_classes_with_encodings(corpus_path):
+
+    # Get all the classes from filesystem.
+    class_names = [element for element in os.listdir(corpus_path) if not os.path.isfile(os.path.join(corpus_path, element))]
+    print(class_names)
+
+    # Compute one-hot-encodings.
+    print("Computing one-hot-encodings for classes...")
+    one_hot_encodings = label_binarize(class_names, classes=class_names)
+    for index in range(len(class_names)):
+        class_name = class_names[index]
+        one_hot_encoding = one_hot_encodings[index]
+
+    return class_names, one_hot_encodings
+
+
+def get_training_data(class_names, one_hot_encodings, corpus_path):
+
+    # Process classes.
+    data_in = []
+    data_out = []
+    for index, class_name in enumerate(class_names):
+        print("Processing", class_names)
+        one_hot_encoding = one_hot_encodings[index]
+
+        # Process the files for the class and extend training set.
+        ins, outs = process_class(corpus_path, class_name, one_hot_encoding)
+        data_in.extend(ins)
+        data_out.extend(outs)
+
+    return data_in, data_out
+
+
+def process_class(corpus_path, class_name, one_hot_encoding):
+
+    ins = []
+    outs = []
+
+    # Get all files.
+    glob_path = os.path.join(corpus_path, class_name, "*.body.txt")
+    body_file_paths = glob.glob(glob_path)
+    body_file_paths = body_file_paths[0:1]
+
+    # For each file split data into paragraphs. Each paragraph is then turned into a document-vector.
+    # After that we have all data as input-output.
+    for body_file_path in body_file_paths:
+        print("Processing file", body_file_path + "...")
+        with open(body_file_path) as body_file:
+            body = body_file.read()
+            paragraphs = split_into_paragraphs(body)
+            vectors = [doc.vector for doc in spacy_german.pipe(paragraphs, batch_size=500, n_threads=1)]
+            vectors = np.array(vectors)
+            ins.extend(vectors)
+            for _ in range(len(vectors)):
+                outs.append(one_hot_encoding)
+
+            # Double checking.
+            if len(ins) != len(outs):
+                raise Exception("Inconsistency.", len(data_in), len(data_out))
+
+    return ins, outs
 
 
 def split_into_paragraphs(text):
